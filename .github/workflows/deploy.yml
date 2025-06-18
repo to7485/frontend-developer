@@ -28,7 +28,7 @@ jobs:
 
       # 정적파일 빌드
       - name: Build react app
-        run: npm run build
+        run: CI=false npm run build
 
 
       # react-eb-final 폴더에 이미 build폴더가 있는 경우 우선 삭제한다.
