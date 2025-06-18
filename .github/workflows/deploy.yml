@@ -24,7 +24,7 @@ jobs:
 
       # 의존성 설치하기
       - name: Install frontend dependencies
-        run: npm Install
+        run: npm install
 
       # 정적파일 빌드
       - name: Build react app
