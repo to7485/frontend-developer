@@ -1,4 +1,4 @@
-name: React App Deploy to EB
+name: Deploy React + Express App to EB
 
 on:
   push:
@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source code
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Setup Node.js
@@ -20,54 +20,27 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build react app
+      - name: Build React App
         run: CI=false npm run build
 
-      - name: Create deploy folder
-        run: mkdir react-eb-final
-
-      - name: Copy build output
-        run: cp -r build react-eb-final/
-
-      - name: Copy essential files
+      - name: Move build folder to react-eb-final/
         run: |
-          cp index.js react-eb-final/
-          cp package.json react-eb-final/
-          cp -r node_modules react-eb-final/
+          rm -rf react-eb-final/build
+          mv build react-eb-final/
 
-      - name: Create nginx config
-        run: |
-          mkdir -p react-eb-final/.platform/nginx/conf.d
-          echo 'server {
-  listen 80;
-  server_name api.springbootlhj.store;
-  root /var/app/current/build;
-
-  location / {
-    index index.html;
-    try_files $uri $uri/ /index.html;
-  }
-
-  location ~* \.(js|css|html)$ {
-    add_header Cache-Control "no-cache, no-store, must-revalidate";
-  }
-}' > react-eb-final/.platform/nginx/conf.d/00_application.conf
-
-      - name: Create Procfile
-        run: echo 'web: node index.js' > react-eb-final/Procfile
-
-      - name: Zip deployment package
+      - name: Archive for EB deployment
         run: |
           cd react-eb-final
-          zip -r ../react-eb-final.zip . .[^.]* *
+          zip -r ../react-eb-final.zip ./*
+          if [ -d "../.platform" ]; then zip -r ../react-eb-final.zip ../.platform; fi
 
       - name: Deploy to Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v20
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: TodoApplication-frontend-env
-          environment_name: TodoApplication-frontend-env-env
-          version_label: react-eb-final-${{ github.run_number }}
+          application_name: YourAppName
+          environment_name: YourEnvironmentName
           region: ap-northeast-2
+          version_label: react-eb-final-${{ github.run_number }}
           deployment_package: react-eb-final.zip
