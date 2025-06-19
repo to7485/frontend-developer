@@ -20,15 +20,13 @@ jobs:
 
       - name: Install and build React app
         run: |
-          cd client
           npm ci
           npm run build
-          cd ..
 
       - name: Replace old build in react-eb-final
         run: |
           rm -rf react-eb-final/build
-          cp -r client/build react-eb-final/build
+          cp -r build react-eb-final/
 
       - name: Zip the react-eb-final folder (includes .platform)
         run: |
@@ -42,8 +40,8 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: TodoApplication-frontend-env          # EB 앱 이름
-          environment_name: TodoApplication-frontend-env-env      # EB 환경 이름
-          region: ap-northeast-2                                   # 리전
+          application_name: TodoApplication-frontend-env
+          environment_name: TodoApplication-frontend-env-env
+          region: ap-northeast-2
           version_label: react-eb-final-${{ github.run_number }}
           deployment_package: react-eb-final.zip
