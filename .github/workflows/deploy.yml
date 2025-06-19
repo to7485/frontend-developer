@@ -1,46 +1,49 @@
-name: Deploy React + Express App to EB
+name: Deploy React + Express to Elastic Beanstalk
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: 18
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install and build React app
+        run: |
+          cd client
+          npm ci
+          npm run build
+          cd ..
 
-      - name: Build React App
-        run: CI=false npm run build
-
-      - name: Move build folder to react-eb-final/
+      - name: Replace old build in react-eb-final
         run: |
           rm -rf react-eb-final/build
-          mv build react-eb-final/
+          cp -r client/build react-eb-final/build
 
-      - name: Archive for EB deployment
+      - name: Zip the react-eb-final folder (includes .platform)
         run: |
+          rm -f react-eb-final.zip
           cd react-eb-final
           zip -r ../react-eb-final.zip ./*
-          if [ -d "../.platform" ]; then zip -r ../react-eb-final.zip ../.platform; fi
+          cd ..
 
       - name: Deploy to Elastic Beanstalk
-        uses: einaregilsson/beanstalk-deploy@v20
+        uses: einaregilsson/beanstalk-deploy@v21
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: TodoApplication-frontend-env
-          environment_name: TodoApplication-frontend-env-env
-          region: ap-northeast-2
+          application_name: TodoApplication-frontend-env          # EB 앱 이름
+          environment_name: TodoApplication-frontend-env-env      # EB 환경 이름
+          region: ap-northeast-2                                   # 리전
           version_label: react-eb-final-${{ github.run_number }}
           deployment_package: react-eb-final.zip
