@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build React app (ignore ESLint error)
+      - name: Build React app (ignore ESLint errors)
         run: |
           CI=false npm run build
 
@@ -30,11 +30,11 @@ jobs:
           rm -rf react-eb-final/build
           cp -r build react-eb-final/
 
-      - name: Zip the react-eb-final folder (includes .platform)
+      - name: Zip react-eb-final folder (include .platform)
         run: |
           rm -f react-eb-final.zip
           cd react-eb-final
-          zip -r ../react-eb-final.zip ./*
+          zip -r ../react-eb-final.zip .     # ⬅️ 숨김폴더 포함 압축
           cd ..
 
       - name: Deploy to Elastic Beanstalk
